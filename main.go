@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -18,7 +19,26 @@ func main() {
 	title := cmd[0]
 
 	command := exec.Command(title, cmd[1:]...)
-	if _, err := command.Output(); err != nil {
+
+	cmdReader, err := command.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(cmdReader)
+	go func() {
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+
+	err = command.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = command.Wait()
+	if err != nil {
 		log.Fatal(err)
 	}
 
