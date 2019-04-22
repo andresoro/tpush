@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -11,32 +10,26 @@ import (
 )
 
 func main() {
+
 	if len(os.Args) <= 1 {
 		fmt.Println("run a command after tpush")
 	}
 
+	// init command
 	cmd := os.Args[1:]
 	title := cmd[0]
 
 	command := exec.Command(title, cmd[1:]...)
 
-	cmdReader, err := command.StdoutPipe()
+	command.Stdout = os.Stdout
+
+	// start cmd
+	err := command.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	scanner := bufio.NewScanner(cmdReader)
-	go func() {
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
-		}
-	}()
-
-	err = command.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// wait for cmd to finish
 	err = command.Wait()
 	if err != nil {
 		log.Fatal(err)
